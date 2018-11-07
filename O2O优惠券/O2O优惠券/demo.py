@@ -10,15 +10,16 @@ cookly_offline_test = pd.read_csv('./Data/ccf_offline_stage1_test_revised.csv')
 
 # 可以看到读入的数据存在不一致的情况，需要做一些简单的处理
 def float2txt(x):
-    try:
-        return str(int(x))
-    except:
+    if x == 'null':
+        return np.nan
+    else:
         return x
+
 def discount2txt(x):
-    try:
+    if x == 'null':
+        return np.nan
+    else:
         return int(x)
-    except:
-        return x
 
 # 处理数据
 print('data deal begin')
@@ -26,11 +27,14 @@ deal_offline_columns = ['User_id','Merchant_id','Coupon_id','Distance','Date_rec
 for columns in deal_offline_columns:
     cookly_offline_train[columns] = cookly_offline_train[columns].map(float2txt)
     cookly_offline_test[columns] = cookly_offline_test[columns].map(float2txt)
+
 columns = 'Date'
 cookly_offline_train[columns] = cookly_offline_train[columns].map(float2txt)
+
 deal_online_columns = ['User_id','Merchant_id','Action','Coupon_id','Discount_rate','Date','Date_received']
 for columns in deal_online_columns:
     cookly_online_train[columns] = cookly_online_train[columns].map(float2txt)
+
 deal_offline_online_discount = ['Discount_rate']
 for columns in deal_offline_online_discount:
     cookly_offline_train[columns] = cookly_offline_train[columns].map(discount2txt)
