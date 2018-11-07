@@ -259,3 +259,6 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+/O2O优惠券/O2O优惠券/Data/ccf_online_stage1_train.csv
+/O2O优惠券/O2O优惠券/Data/ccf_offline_stage1_train.csv
+/O2O优惠券/O2O优惠券/Data/ccf_offline_stage1_test_revised.csv

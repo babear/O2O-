@@ -4,13 +4,14 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>5f633626-0911-458f-9dad-1978fbd9cd80</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>O2O优惠券.py</StartupFile>
+    <StartupFile>demo.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>O2O优惠券</Name>
     <RootNamespace>O2O优惠券</RootNamespace>
+    <InterpreterId>CondaEnv|CondaEnv|Anaconda_Python36</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,7 +22,13 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="demo.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="O2O优惠券.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="CondaEnv|CondaEnv|Anaconda_Python36" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
