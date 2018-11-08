@@ -9,38 +9,30 @@ cookly_online_train = pd.read_csv('./Data/ccf_online_stage1_train.csv')
 cookly_offline_test = pd.read_csv('./Data/ccf_offline_stage1_test_revised.csv')
 
 # 可以看到读入的数据存在不一致的情况，需要做一些简单的处理
-def float2txt(x):
+def covToNaN(x, type = None):
     if x == 'null':
         return np.nan
+    elif type != None:
+        return type(x)
     else:
         return x
 
-def discount2txt(x):
-    if x == 'null':
-        return np.nan
-    else:
-        return int(x)
-
+cookly_offline_train['User_id'] = cookly_offline_train['User_id'].apply(covToNaN, args=(str,))
 # 处理数据
 print('data deal begin')
-deal_offline_columns = ['User_id','Merchant_id','Coupon_id','Distance','Date_received']
-for columns in deal_offline_columns:
-    cookly_offline_train[columns] = cookly_offline_train[columns].map(float2txt)
-    cookly_offline_test[columns] = cookly_offline_test[columns].map(float2txt)
+deal_offline_columns = ['User_id','Merchant_id','Coupon_id','Discount_rate', 'Distance', 'Date_received', 'Date']
+for columns in deal_offline_columns[2:]:
+    cookly_offline_train[columns] = cookly_offline_train[columns].map(covToNaN,str)
 
-columns = 'Date'
-cookly_offline_train[columns] = cookly_offline_train[columns].map(float2txt)
+deal_online_columns = ['User_id','Merchant_id','Action','Coupon_id','Discount_rate', 'Date_received', 'Date']
+for columns in deal_online_columns[3:]:
+    cookly_online_train[columns] = cookly_online_train[columns].map(covToNaN)
 
-deal_online_columns = ['User_id','Merchant_id','Action','Coupon_id','Discount_rate','Date','Date_received']
-for columns in deal_online_columns:
-    cookly_online_train[columns] = cookly_online_train[columns].map(float2txt)
-
-deal_offline_online_discount = ['Discount_rate']
-for columns in deal_offline_online_discount:
-    cookly_offline_train[columns] = cookly_offline_train[columns].map(discount2txt)
-    cookly_offline_test[columns] = cookly_offline_test[columns].map(discount2txt)
-    cookly_online_train[columns] = cookly_online_train[columns].map(discount2txt)
-
+deal_offline_test_columns = ['User_id','Merchant_id','Coupon_id','Discount_rate', 'Distance', 'Date_received']
+cookly_offline_test['Coupon_id'] = cookly_offline_test[columns].map(covToNaN,str())
+cookly_offline_test['Discount_rate'] = cookly_offline_test[columns].map(covToNaN)
+cookly_offline_test['Distance'] = cookly_offline_test[columns].map(covToNaN)
+cookly_offline_test['Date_received'] = cookly_offline_test[columns].map(covToNaN,str())
 print('data deal end')
 
 # 数据分表处理
@@ -49,10 +41,12 @@ print('data deal end')
 # 业务上可以去掉无效字段，使用时再合并        
 print('分表处理开始')
 # offline 数据分成两张表
-cookly_offline_train_coupon = cookly_offline_train[~cookly_offline_train['Coupon_id'].isnull()]
-cookly_offline_train_consumption = cookly_offline_train[cookly_offline_train['Coupon_id'].isnull()]
-cookly_online_train_coupon = cookly_online_train[~cookly_online_train['Coupon_id'].isnull()] # Action '1','2'
-cookly_online_train_no_coupon = cookly_online_train[cookly_online_train['Coupon_id'].isnull()] # Action '0','1'
+cookly_offline_train_notnull_coupon = cookly_offline_train[cookly_offline_train['Coupon_id'].notnull()]
+cookly_offline_train_null_coupon = cookly_offline_train[cookly_offline_train['Coupon_id'].isnull()]
+
+cookly_online_train_notnull_coupon = cookly_online_train[cookly_online_train['Coupon_id'].notnull()] # Action '1','2'
+cookly_online_train_null_coupon = cookly_online_train[cookly_online_train['Coupon_id'].isnull()] # Action '0','1'
+
 cookly_offline_test_coupon = cookly_offline_test.copy()
 print('分表处理结束')
 
@@ -67,16 +61,19 @@ print('分表处理结束')
 # train2 时间：20160501--20160531
 # test 时间：20160701--20160731
 print('候选集建立开始')
-cookly_train_user_label1 = cookly_offline_train_coupon[(cookly_offline_train_coupon['Date_received']>='20160516')\
-                 &(cookly_offline_train_coupon['Date_received']<='20160615')][['User_id','Merchant_id','Coupon_id','Date_received','Date']].\
+cookly_train_user_label1 = cookly_offline_train_notnull_coupon[(cookly_offline_train_notnull_coupon['Date_received']>='20160516')\
+                 &(cookly_offline_train_notnull_coupon['Date_received']<='20160615')][['User_id','Merchant_id','Coupon_id','Date_received','Date']].\
                  drop_duplicates(['User_id','Coupon_id','Date_received'])
-cookly_train_user_label2 = cookly_offline_train_coupon[(cookly_offline_train_coupon['Date_received']>='20160501')\
-                 &(cookly_offline_train_coupon['Date_received']<='20160531')][['User_id','Merchant_id','Coupon_id','Date_received','Date']].\
+cookly_train_user_label2 = cookly_offline_train_notnull_coupon[(cookly_offline_train_notnull_coupon['Date_received']>='20160501')\
+                 &(cookly_offline_train_notnull_coupon['Date_received']<='20160531')][['User_id','Merchant_id','Coupon_id','Date_received','Date']].\
                  drop_duplicates(['User_id','Coupon_id','Date_received'])
 cookly_test_user_label = cookly_offline_test_coupon[(cookly_offline_test_coupon['Date_received']>='20160701')\
                 &(cookly_offline_test_coupon['Date_received']<='20160731')][['User_id','Merchant_id','Coupon_id','Date_received']].\
                 drop_duplicates(['User_id','Coupon_id','Date_received'])
 print('候选集建立结束')
+
+#cookly_offline_train_notnull_coupon.sort_values(by = 'Date_received',axis = 0,ascending = True)
+
 
 # 打标签逻辑：用户15天内使用则为1，否则为0
 def get_label(data):
@@ -380,39 +377,39 @@ def data_features(data_user, data, end_day, windows_list, FLAG):
 # train1 end_day = '2016,04,30'
 # train2 end_day = '2016,04,15'
 # test end_day = '2016,06,15'
-cookly_train_f1_1=offline_coupon_features(cookly_train_user_label1, cookly_offline_train_coupon, end_day=(2016,4,30), windows_list=[66], FLAG='offline_coupon_')
-cookly_train_f1_2=offline_coupon_features(cookly_train_user_label2, cookly_offline_train_coupon, end_day=(2016,4,15), windows_list=[66], FLAG='offline_coupon_')
-cookly_test_f1=offline_coupon_features(cookly_test_user_label, cookly_offline_train_coupon, end_day=(2016,6,15), windows_list=[66], FLAG='offline_coupon_')
+cookly_train_f1_1=offline_coupon_features(cookly_train_user_label1, cookly_offline_train_notnull_coupon, end_day=(2016,4,30), windows_list=[66], FLAG='offline_coupon_')
+cookly_train_f1_2=offline_coupon_features(cookly_train_user_label2, cookly_offline_train_notnull_coupon, end_day=(2016,4,15), windows_list=[66], FLAG='offline_coupon_')
+cookly_test_f1=offline_coupon_features(cookly_test_user_label, cookly_offline_train_notnull_coupon, end_day=(2016,6,15), windows_list=[66], FLAG='offline_coupon_')
 
 # 提取线下consumption一组特征
 # train1 end_day = '2016,05,15'
 # train2 end_day = '2016,04,30'
 # test end_day = '2016,06,30'
-cookly_train_f2_1=offline_consumption_features(cookly_train_user_label1, cookly_offline_train_consumption, end_day=(2016,5,15), windows_list=[66], FLAG='offline_consumption_')
-cookly_train_f2_2=offline_consumption_features(cookly_train_user_label2, cookly_offline_train_consumption, end_day=(2016,4,30), windows_list=[66], FLAG='offline_consumption_')
-cookly_test_f2=offline_consumption_features(cookly_test_user_label, cookly_offline_train_consumption, end_day=(2016,6,30), windows_list=[66], FLAG='offline_consumption_')
+cookly_train_f2_1=offline_consumption_features(cookly_train_user_label1, cookly_offline_train_null_coupon, end_day=(2016,5,15), windows_list=[66], FLAG='offline_consumption_')
+cookly_train_f2_2=offline_consumption_features(cookly_train_user_label2, cookly_offline_train_null_coupon, end_day=(2016,4,30), windows_list=[66], FLAG='offline_consumption_')
+cookly_test_f2=offline_consumption_features(cookly_test_user_label, cookly_offline_train_null_coupon, end_day=(2016,6,30), windows_list=[66], FLAG='offline_consumption_')
 
 # 提取线上online_coupon一组特征
 # train1 end_day = '2016,04,30'
 # train2 end_day = '2016,04,15'
 # test end_day = '2016,06,15'
-cookly_train_f3_1=online_coupon_features(cookly_train_user_label1, cookly_online_train_coupon, end_day=(2016,4,30), windows_list=[66], FLAG='online_coupon_')
-cookly_train_f3_2=online_coupon_features(cookly_train_user_label2, cookly_online_train_coupon, end_day=(2016,4,15), windows_list=[66], FLAG='online_coupon_')
-cookly_test_f3=online_coupon_features(cookly_test_user_label, cookly_online_train_coupon, end_day=(2016,6,15), windows_list=[66], FLAG='online_coupon_')
+cookly_train_f3_1=online_coupon_features(cookly_train_user_label1, cookly_online_train_notnull_coupon, end_day=(2016,4,30), windows_list=[66], FLAG='online_coupon_')
+cookly_train_f3_2=online_coupon_features(cookly_train_user_label2, cookly_online_train_notnull_coupon, end_day=(2016,4,15), windows_list=[66], FLAG='online_coupon_')
+cookly_test_f3=online_coupon_features(cookly_test_user_label, cookly_online_train_notnull_coupon, end_day=(2016,6,15), windows_list=[66], FLAG='online_coupon_')
 
 # 提取线上online_no_coupon一组特征
 # train1 end_day = '2016,05,15'
 # train2 end_day = '2016,04,30'
 # test end_day = '2016,06,30'
-cookly_train_f4_1=online_no_coupon_features(cookly_train_user_label1, cookly_online_train_no_coupon, end_day=(2016,5,15), windows_list=[66], FLAG='online_no_coupon_')
-cookly_train_f4_2=online_no_coupon_features(cookly_train_user_label2, cookly_online_train_no_coupon, end_day=(2016,4,30), windows_list=[66], FLAG='online_no_coupon_')
-cookly_test_f4=online_no_coupon_features(cookly_test_user_label, cookly_online_train_no_coupon, end_day=(2016,6,30), windows_list=[66], FLAG='online_no_coupon_')
+cookly_train_f4_1=online_no_coupon_features(cookly_train_user_label1, cookly_online_train_null_coupon, end_day=(2016,5,15), windows_list=[66], FLAG='online_no_coupon_')
+cookly_train_f4_2=online_no_coupon_features(cookly_train_user_label2, cookly_online_train_null_coupon, end_day=(2016,4,30), windows_list=[66], FLAG='online_no_coupon_')
+cookly_test_f4=online_no_coupon_features(cookly_test_user_label, cookly_online_train_null_coupon, end_day=(2016,6,30), windows_list=[66], FLAG='online_no_coupon_')
 
 # 穿越特征提取表
-cookly_data_train_label1 = cookly_offline_train_coupon[(cookly_offline_train_coupon['Date_received']>='20160516')\
-                                         &(cookly_offline_train_coupon['Date_received']<='20160615')]
-cookly_data_train_label2 = cookly_offline_train_coupon[(cookly_offline_train_coupon['Date_received']>='20160501')\
-                                         &(cookly_offline_train_coupon['Date_received']<='20160531')]
+cookly_data_train_label1 = cookly_offline_train_notnull_coupon[(cookly_offline_train_notnull_coupon['Date_received']>='20160516')\
+                                         &(cookly_offline_train_notnull_coupon['Date_received']<='20160615')]
+cookly_data_train_label2 = cookly_offline_train_notnull_coupon[(cookly_offline_train_notnull_coupon['Date_received']>='20160501')\
+                                         &(cookly_offline_train_notnull_coupon['Date_received']<='20160531')]
 cookly_data_test_label = cookly_offline_test_coupon
 
 # 穿越特征提取
