@@ -17,22 +17,32 @@ def covToNaN(x, type = None):
     else:
         return x
 
-cookly_offline_train['User_id'] = cookly_offline_train['User_id'].apply(covToNaN, args=(str,))
 # 处理数据
 print('data deal begin')
 deal_offline_columns = ['User_id','Merchant_id','Coupon_id','Discount_rate', 'Distance', 'Date_received', 'Date']
-for columns in deal_offline_columns[2:]:
-    cookly_offline_train[columns] = cookly_offline_train[columns].map(covToNaN,str)
+cookly_offline_train['User_id'] = cookly_offline_train['User_id'].apply(covToNaN, args=(str,))
+cookly_offline_train['Merchant_id'] = cookly_offline_train['Merchant_id'].apply(covToNaN, args=(str,))
+cookly_offline_train['Coupon_id'] = cookly_offline_train['Coupon_id'].apply(covToNaN, args=(str,))
+cookly_offline_train['Discount_rate'] = cookly_offline_train['Discount_rate'].apply(covToNaN, args=(str,))
+cookly_offline_train['Distance'] = cookly_offline_train['Distance'].apply(covToNaN, args=(str,))
+cookly_offline_train['Date_received'] = cookly_offline_train['Date_received'].apply(covToNaN, args=(str,))
+cookly_offline_train['Date'] = cookly_offline_train['Date'].apply(covToNaN, args=(str,))
 
 deal_online_columns = ['User_id','Merchant_id','Action','Coupon_id','Discount_rate', 'Date_received', 'Date']
-for columns in deal_online_columns[3:]:
-    cookly_online_train[columns] = cookly_online_train[columns].map(covToNaN)
+cookly_online_train['User_id'] = cookly_online_train['User_id'].apply(covToNaN, args=(str,))
+cookly_online_train['Merchant_id'] = cookly_online_train['Merchant_id'].apply(covToNaN, args=(str,))
+cookly_online_train['Action'] = cookly_online_train['Action'].apply(covToNaN, args=(str,))
+cookly_online_train['Coupon_id'] = cookly_online_train['Coupon_id'].apply(covToNaN, args=(str,))
+cookly_online_train['Discount_rate'] = cookly_online_train['Discount_rate'].apply(covToNaN, args=(str,))
+cookly_online_train['Date_received'] = cookly_online_train['Date_received'].apply(covToNaN, args=(str,))
 
 deal_offline_test_columns = ['User_id','Merchant_id','Coupon_id','Discount_rate', 'Distance', 'Date_received']
-cookly_offline_test['Coupon_id'] = cookly_offline_test[columns].map(covToNaN,str())
-cookly_offline_test['Discount_rate'] = cookly_offline_test[columns].map(covToNaN)
-cookly_offline_test['Distance'] = cookly_offline_test[columns].map(covToNaN)
-cookly_offline_test['Date_received'] = cookly_offline_test[columns].map(covToNaN,str())
+cookly_offline_test['User_id'] = cookly_offline_test['User_id'].apply(covToNaN, args=(str,))
+cookly_offline_test['Merchant_id'] = cookly_offline_test['Merchant_id'].apply(covToNaN, args=(str,))
+cookly_offline_test['Coupon_id'] = cookly_offline_test['Coupon_id'].apply(covToNaN, args=(str,))
+cookly_offline_test['Discount_rate'] = cookly_offline_test['Discount_rate'].apply(covToNaN, args=(str,))
+cookly_offline_test['Distance'] = cookly_offline_test['Distance'].apply(covToNaN, args=(str,))
+cookly_offline_test['Date_received'] = cookly_offline_test['Date_received'].apply(covToNaN, args=(str,))
 print('data deal end')
 
 # 数据分表处理
